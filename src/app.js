@@ -1,17 +1,15 @@
 const express = require('express');
 const app = express();
 
-app.use("/",(req,res)=>{
-    res.send("Welcome")
+const {authCall} = require("./middlewares/auth")
+
+app.use("/admin/:token",authCall)
+app.get("/admin/:token/getData",(req,res,next)=>{    
+        res.send("got Admin Data")
 })
-app.use('/contact',(req,res)=>{
-    res.send("9876543210")
-})
-app.use('/user',(req,res)=>{
-    res.send("Hello Saranya")
-})
-app.use('/end',(req,res)=>{
-    res.send("Thankyou")
+
+app.get("/admin/:token/deleteData",(req,res)=>{
+        res.send("deleted Admin Data")
 })
 app.listen(7777,()=>{
     console.log("server listening in 7777.....")
