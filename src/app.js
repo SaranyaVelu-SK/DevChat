@@ -18,6 +18,57 @@ app.post("/adminSignUp",async (req,res)=>{
 
 })
 
+app.get("/getUser",async (req,res)=>{
+        const emailId = req.body.email;
+        try{
+                const user = await User.find({email:emailId});
+                if(user.length === 0){
+                        res.status(404).send("user not found")
+                }else{
+                        res.send(user)
+                }
+        }catch(err){
+                res.status(400).send("Something went wrong")
+        }
+        
+        
+})
+
+app.get("/getFeed",async(req,res)=>{
+        try{
+                const users = await User.find({});
+                if(users.length === 0){
+                        res.status(404).send(" feed is empty")
+                }else{
+                        res.send(users)
+                }
+        }catch(err){
+                res.status(400).send("Smething went wrong")
+        }
+})
+
+app.patch("/updateUser",async(req,res)=>{
+        const newData = req.body;
+        const userId = req.body.userId;
+        console.log(User)
+        try{
+                const updatedUser = await User.findByIdAndUpdate({_id:userId},newData,{returnDocument:'after'});
+                res.send(updatedUser)
+        }catch(err){
+                res.status(400).send("Something went wrong")
+        }
+})
+
+app.delete("/deleteUser",async(req,res)=>{
+        const userId = req.body.userId;
+        try{
+                await User.findByIdAndDelete(userId);
+                res.send("User deleted Successfully")
+        }catch(err){
+                res.status(400).send("Something went wrong")
+        }
+})
+
 connectDB().then(()=>{
         console.log("DB connected");
         app.listen(7777,()=>{
