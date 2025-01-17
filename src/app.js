@@ -1,16 +1,29 @@
 const express = require('express');
 const app = express();
 
-const {authCall} = require("./middlewares/auth")
+const {connectDB} = require("./config/database");
+const User = require("./models/user")
 
-app.use("/admin/:token",authCall)
-app.get("/admin/:token/getData",(req,res,next)=>{    
-        res.send("got Admin Data")
+app.use(express.json())      //middleware by express to parse the JSON object - it runs before any request and parses the JSON in req
+app.post("/adminSignUp",async (req,res)=>{
+        const admin1 = new User(req.body)   // creating instance of the User model
+
+        try{
+                await admin1.save();
+                res.send("data saved successfully");
+        }catch(err){
+                res.status(400).send("data not saved")
+                console.log(err)
+        }
+
 })
 
-app.get("/admin/:token/deleteData",(req,res)=>{
-        res.send("deleted Admin Data")
-})
-app.listen(7777,()=>{
-    console.log("server listening in 7777.....")
+connectDB().then(()=>{
+        console.log("DB connected");
+        app.listen(7777,()=>{
+                console.log("server listening in 7777.....")
+            })
+
+}).catch((err)=>{
+        console.log(err)
 })
