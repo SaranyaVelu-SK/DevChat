@@ -1,15 +1,29 @@
 const express = require('express');
+const bcrypt = require("bcrypt");
+
 const app = express();
+const {validateInput} = require("./helpers/validation")
 
 const {connectDB} = require("./config/database");
 const User = require("./models/user")
 
 app.use(express.json())      //middleware by express to parse the JSON object - it runs before any request and parses the JSON in req
 app.post("/adminSignUp",async (req,res)=>{
-        const admin1 = new User(req.body)   // creating instance of the User model
+        //const admin1 = new User(req.body)// creating instance of the User model
+        
 
+        
         try{
-                await admin1.save();
+                validateInput(req.body);
+
+                //password Hashing
+                const {firstName, lastName,email,password } = req.body
+                const hashedPassword = await bcrypt.hash(password,10);
+
+                const admin = new User({
+                        firstName,lastName,email,password:hashedPassword
+                })
+                await admin.save();
                 res.send("data saved successfully");
         }catch(err){
                 res.status(400).send("data not saved "+err.message)
@@ -82,6 +96,27 @@ app.delete("/deleteUser",async(req,res)=>{
         }
 })
 
+app.get('/login', async(req,res)=>{
+
+        try{
+                const {emailId,password} = req.body;
+                
+                const userInDB = await User.findOne({email:emailId})
+                console.log(userInDB)
+                if(!userInDB){
+                        throw new Error("Invalid credentials")
+                }
+                const isPasswordMatched = await bcrypt.compare(password,userInDB.password);
+
+                if(!isPasswordMatched){
+                        throw new Error("Invalid credentials!")
+                }
+
+                res.send("logged in Successfully")
+        }catch(err){
+                res.status(400).send(err.message)
+        }
+})
 connectDB().then(()=>{
         console.log("DB connected");
         app.listen(7777,()=>{
