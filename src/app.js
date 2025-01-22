@@ -12,7 +12,7 @@ app.post("/adminSignUp",async (req,res)=>{
                 await admin1.save();
                 res.send("data saved successfully");
         }catch(err){
-                res.status(400).send("data not saved")
+                res.status(400).send("data not saved "+err.message)
                 console.log(err)
         }
 
@@ -47,15 +47,28 @@ app.get("/getFeed",async(req,res)=>{
         }
 })
 
-app.patch("/updateUser",async(req,res)=>{
+app.patch("/updateUser/:userId",async(req,res)=>{
         const newData = req.body;
-        const userId = req.body.userId;
-        console.log(User)
+        const userId = req.params?.userId;
+
+        
         try{
+                //API level data sanitization and data validation
+                const update_allowed_fields = ["firstName","lastName","age","gender","skills","description","profilePic","password"];
+                const isUpdateAllowed = Object.keys(newData).every(k => update_allowed_fields.includes(k));
+                if(!isUpdateAllowed){
+                        throw new Error("update not allowed for email and userId")
+                }
+                if(newData.skills.length >5){
+                        throw new Error("only 5 skills are accepted")
+                }
+
+                //update the user
                 const updatedUser = await User.findByIdAndUpdate({_id:userId},newData,{returnDocument:'after'});
                 res.send(updatedUser)
+
         }catch(err){
-                res.status(400).send("Something went wrong")
+                res.status(400).send(err.message)
         }
 })
 
